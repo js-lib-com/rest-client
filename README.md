@@ -10,7 +10,7 @@ created use it as regular Java instance and call methods. Client instance is a J
 ```
   public class WikipediaPageSummary {
     String title;
-    String displayTitle;
+    String displaytitle;
     String extract;
   }
 
@@ -20,7 +20,7 @@ created use it as regular Java instance and call methods. Client instance is a J
   }
 
   RestClientFactory factory = new RestClientFactory();
-  Wikipedia wikipedia = factory.newInstance("https://en.wikipedia.org/api/rest_v1/", Wikipedia.class);
+  Wikipedia wikipedia = factory.getRemoteInstance("https://en.wikipedia.org/api/rest_v1/", Wikipedia.class);
   
   WikipediaPageSummary summary = wikipedia.getPageSummary("Lion");
   // summary instance with fields initialized from JSON response
