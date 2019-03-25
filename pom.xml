@@ -81,7 +81,7 @@
 		<dependency>
 			<groupId>com.js-lib</groupId>
 			<artifactId>js-json</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
