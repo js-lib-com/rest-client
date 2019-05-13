@@ -7,11 +7,18 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
@@ -21,7 +28,9 @@ import javax.ws.rs.PathParam;
 
 import js.json.Json;
 import js.lang.BugError;
+import js.lang.DefaultTrustManager;
 import js.util.Classes;
+import js.util.Strings;
 
 public class RestTransactionHandler implements InvocationHandler {
 
@@ -47,15 +56,32 @@ public class RestTransactionHandler implements InvocationHandler {
 		URL url = new URL(implementationURL + path(method, args));
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
+		if (isSecure(url.getProtocol())) {
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(new KeyManager[0], new TrustManager[] { new DefaultTrustManager() }, new SecureRandom());
+			((HttpsURLConnection) connection).setSSLSocketFactory(sslContext.getSocketFactory());
+		}
+
 		String requestMethod = requestMethod(method);
 		connection.setRequestMethod(requestMethod);
 		if (requestMethod.equals(POST) || requestMethod.equals(PUT)) {
 			connection.setDoOutput(true);
 		}
 
+		for (Map.Entry<String, String> headerParam : headerParams(method, args).entrySet()) {
+			connection.setRequestProperty(headerParam.getKey(), headerParam.getValue());
+		}
+
+		if (method.getAnnotation(BasicAuth.class) != null) {
+			if (args.length != 2 || !(args[0] instanceof String) || !(args[1] instanceof String)) {
+				throw new IllegalArgumentException("BasicAuth requires two parameters of type String.");
+			}
+			connection.setRequestProperty("Authorization", "Basic " + Base64.getEncoder().encodeToString(Strings.concat(args[0], ":", args[1]).getBytes()));
+		}
+
 		Reader reader = new InputStreamReader(connection.getInputStream());
 		try {
-			return json.parse(reader, method.getReturnType());
+			return json.parse(reader, method.getGenericReturnType());
 		} finally {
 			reader.close();
 		}
@@ -111,20 +137,46 @@ public class RestTransactionHandler implements InvocationHandler {
 
 		Annotation[][] annotations = method.getParameterAnnotations();
 		for (int i = 0; i < args.length; ++i) {
+			if (method.getAnnotation(BasicAuth.class) != null) {
+				continue;
+			}
 			if (annotations[i].length == 0) {
 				throw new BugError("Missing annotation on parameter |%d| from method |%s|.", i, method);
 			}
 			for (int j = 0; j < annotations[i].length; ++j) {
 				Annotation annotation = annotations[i][j];
-				if (!(annotation instanceof PathParam)) {
-					throw new BugError("Not recognized parameter annotation |%s|.", annotation);
+				if (annotation instanceof PathParam) {
+					PathParam pathParam = (PathParam) annotation;
+					variables.put(pathParam.value(), args[i]);
 				}
-				PathParam pathParam = (PathParam) annotation;
-				variables.put(pathParam.value(), args[i]);
 			}
 		}
 
 		return format(pathFormat, variables);
+	}
+
+	private static Map<String, String> headerParams(Method method, Object[] args) {
+		Map<String, String> headerParams = new HashMap<>();
+
+		Annotation[][] annotations = method.getParameterAnnotations();
+		for (int i = 0; i < args.length; ++i) {
+			if (method.getAnnotation(BasicAuth.class) != null) {
+				continue;
+			}
+			if (annotations[i].length == 0) {
+				throw new BugError("Missing annotation on parameter |%d| from method |%s|.", i, method);
+			}
+			for (int j = 0; j < annotations[i].length; ++j) {
+				Annotation annotation = annotations[i][j];
+				if (annotation instanceof HeaderParam) {
+					HeaderParam pathParam = (HeaderParam) annotation;
+					headerParams.put(pathParam.value(), args[i] instanceof String ? (String) args[i] : args[i].toString());
+				}
+			}
+		}
+
+		return headerParams;
+
 	}
 
 	public static String format(String pathFormat, Map<String, Object> variables) {
@@ -159,5 +211,28 @@ public class RestTransactionHandler implements InvocationHandler {
 			}
 		}
 		return pathBuilder.toString();
+	}
+
+	/** Standard HTTP protocol name. */
+	private static final String HTTP = "http";
+
+	/** Secure HTTP protocol name. */
+	private static final String HTTPS = "https";
+
+	/**
+	 * Predicate to test if given protocol is secure.
+	 * 
+	 * @param protocol protocol to test if secure.
+	 * @return true it given <code>protocol</code> is secure.
+	 * @throws BugError if given protocol is not supported.
+	 */
+	private static boolean isSecure(String protocol) throws BugError {
+		if (HTTP.equalsIgnoreCase(protocol)) {
+			return false;
+		} else if (HTTPS.equalsIgnoreCase(protocol)) {
+			return true;
+		} else {
+			throw new BugError("Unsupported protocol |%s| for HTTP transaction.", protocol);
+		}
 	}
 }
