@@ -4,16 +4,37 @@
 	<artifactId>js-rest-client</artifactId>
 	<version>1.0.0</version>
 
+	<name>REST Client</name>
+	<description>Java Proxy client for REST services.</description>
+	<url>https://github.com/js-lib-com/rest-client.git</url>
+
+	<developers>
+		<developer>
+			<name>Iulian Rotaru</name>
+			<email>iulian@js-lib.com</email>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>https://github.com/js-lib-com/rest-client.git</connection>
+		<url>https://github.com/js-lib-com/rest-client</url>
+	</scm>
+
+	<properties>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -101,4 +122,15 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 </project>
