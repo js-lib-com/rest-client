@@ -1,4 +1,4 @@
-package js.rest.client.it;
+package com.jslib.rest.client.it;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import js.rest.client.RestClientFactory;
+import com.jslib.rest.client.RestClientFactory;
 
 public class WikipediaClientTest {
 	private static RestClientFactory factory;

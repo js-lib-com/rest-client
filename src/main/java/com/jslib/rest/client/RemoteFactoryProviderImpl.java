@@ -1,4 +1,4 @@
-package js.rest.client;
+package com.jslib.rest.client;
 
 import js.rmi.RemoteFactory;
 import js.rmi.RemoteFactoryProvider;

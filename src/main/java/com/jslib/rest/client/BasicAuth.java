@@ -1,4 +1,4 @@
-package js.rest.client;
+package com.jslib.rest.client;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
