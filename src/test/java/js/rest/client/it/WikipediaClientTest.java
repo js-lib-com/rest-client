@@ -36,9 +36,9 @@ public class WikipediaClientTest {
 		assertThat(summary.getTitle(), notNullValue());
 		assertThat(summary.getTitle(), equalTo("Lion"));
 		assertThat(summary.getDisplayTitle(), notNullValue());
-		assertThat(summary.getDisplayTitle(), equalTo("Lion"));
+		assertThat(summary.getDisplayTitle(), equalTo("<span class=\"mw-page-title-main\">Lion</span>"));
 		assertThat(summary.getExtract(), notNullValue());
-		assertThat(summary.getExtract(), startsWith("The lion is a species in the family Felidae"));
+		assertThat(summary.getExtract(), startsWith("The lion is a large cat of the genus Panthera"));
 	}
 
 	public static class WikipediaPageSummary {
